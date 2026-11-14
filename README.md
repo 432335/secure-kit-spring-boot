@@ -450,6 +450,22 @@ public AuditUserProvider auditUserProvider() {
 
 在项目根目录执行 `mvn clean install`，先使用本地安装的 `0.1.0`。
 
+### 和 Spring Security 冲突吗？
+
+不冲突。本项目不注册任何 Filter/Interceptor，不接管 SecurityContext，可以和 Spring Security 同时使用。
+
+### 性能开销多大？
+
+mask 是纯字符串正则匹配；audit 异步且有界队列；log-guard 每条日志多一次正则 replace，建议只在需要的 appender 上启用。
+
+### 为什么 audit 默认不持久化？
+
+持久化方式差异太大（JDBC/文件/MQ/审计平台），默认只输出 DEBUG，生产环境请实现 `AuditRepository`。
+
+### log-guard 会误伤纯数字订单号吗？
+
+会。银行卡正则 `\d{13,19}` 较宽泛，请通过 `secure-kit.log-guard.patterns` 覆盖为业务精确规则。
+
 ## 10. 边界与已知限制
 
 - 不做认证、鉴权、登录、JWT、OAuth2、RBAC。
