@@ -1,38 +1,136 @@
 # secure-kit-spring-boot
 
-一组默认关闭、可独立引入的 Spring Boot 安全能力库：
+[![CI](https://github.com/432335/secure-kit-spring-boot/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/432335/secure-kit-spring-boot/actions/workflows/ci.yml)
+[![Java](https://img.shields.io/badge/Java-17-blue.svg)](https://adoptium.net/)
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.2.x-brightgreen.svg)](https://spring.io/projects/spring-boot)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
+![Maven Central](https://img.shields.io/badge/Maven%20Central-0.1.0-blue.svg)
 
-- **mask**：显式脱敏手机号、身份证、银行卡、邮箱和自定义正则。
-- **audit**：通过 `@AuditLog` 生成审计事件，可接自己的存储。
-- **log-guard**：在 Logback / Log4j2 出口替换日志里的敏感文本。
+## 1. 项目简介
 
-三个能力互不强依赖，引入依赖不会自动生效，需要显式开启并按下面的方式使用。
+一组默认关闭、可独立引入的 Spring Boot 安全能力库：显式脱敏、审计事件、日志出口守卫。
 
-## 模块
+## 2. 30 秒了解
 
-| 模块 | 作用 | 引入坐标 |
-| --- | --- | --- |
-| mask starter | 显式脱敏 | `io.github.user432335:secure-kit-mask-spring-boot-starter:0.1.0-SNAPSHOT` |
-| audit starter | 审计事件 | `io.github.user432335:secure-kit-audit-spring-boot-starter:0.1.0-SNAPSHOT` |
-| log-guard starter | 日志出口脱敏 | `io.github.user432335:secure-kit-log-guard-spring-boot-starter:0.1.0-SNAPSHOT` |
+### 脱敏前
 
-要求：Java 17、Spring Boot 3.2.x。
+```java
+String phone = user.getPhone();
+return phone;
+```
 
----
+### 脱敏后
 
-## 1. 脱敏：mask
+```java
+String phone = maskTemplate.mask(MaskType.PHONE, user.getPhone());
+return phone;
+```
 
-### 引入依赖
+### 审计前
+
+```java
+public Order queryOrder(String orderId) {
+    return orderService.query(orderId);
+}
+```
+
+### 审计后
+
+```java
+@AuditLog(action = "query-order", targetIdExpression = "#p0")
+public Order queryOrder(String orderId) {
+    return orderService.query(orderId);
+}
+```
+
+### 日志出口守卫
+
+```text
+# 配置前
+2026-01-01 10:00:00 INFO  c.e.OrderService - phone=13812345678
+
+# 配置 log-guard 后
+2026-01-01 10:00:00 INFO  c.e.OrderService - phone=*
+```
+
+## 3. 定位：库不是框架
+
+这是**库**，不是框架。
+
+- 用户主导控制流：不调用就不生效。
+- 不接管应用结构：mask 不拦截字段，audit 只提供可选通知点，log-guard 只挂在日志框架扩展点。
+- 默认关闭：引入依赖不会自动改变应用行为。
+- 不做认证、鉴权、登录、JWT、OAuth2、RBAC、API Key 校验。
+- 不实现加密、哈希、签名算法。
+
+和 Spring Security 的关系是**互补，不替代**：
+
+- Spring Security 负责认证、鉴权和安全过滤器链。
+- 本项目只提供脱敏、审计事件和日志出口守卫。
+- 需要当前登录人时，可以自己实现 `AuditUserProvider`，从 Spring Security 上下文读取。
+
+## 4. 模块表
+
+| 模块 | 作用 | 类型 | 默认开关 | 坐标 |
+| --- | --- | --- | --- | --- |
+| `secure-kit-core` | 共享 `MaskType` 枚举 | 公共库 | 不适用 | `io.github.432335:secure-kit-core` |
+| `secure-kit-mask-spring-boot-starter` | 显式脱敏 | 纯库 | `false` | `io.github.432335:secure-kit-mask-spring-boot-starter` |
+| `secure-kit-audit-spring-boot-starter` | 审计事件 | 能力库 + 可选 AOP | `false` | `io.github.432335:secure-kit-audit-spring-boot-starter` |
+| `secure-kit-log-guard-spring-boot-starter` | 日志出口脱敏 | 日志扩展 | `false` | `io.github.432335:secure-kit-log-guard-spring-boot-starter` |
+| `secure-kit-demo` | 示例与集成测试 | 示例应用 | 不适用 | 不发布 |
+
+### 为什么默认关闭
+
+- 引入依赖不应该改变现有业务行为。
+- 安全能力应该由使用者显式开启，而不是自动接管。
+- 避免脱敏误伤、日志性能开销和审计队列占用。
+- 方便逐步接入：先引入，再按需打开。
+
+## 5. 快速开始
+
+### 前置条件
+
+- JDK 17
+- Maven 3.9+
+- Spring Boot 3.2.x
+
+### 方式 A：从本地源码安装
+
+```bash
+mvn clean install
+```
+
+然后在业务项目中使用 `0.1.0` 版本。
+
+### 方式 B：Maven Central 坐标
 
 ```xml
 <dependency>
-    <groupId>io.github.user432335</groupId>
+    <groupId>io.github.432335</groupId>
     <artifactId>secure-kit-mask-spring-boot-starter</artifactId>
-    <version>0.1.0-SNAPSHOT</version>
+    <version>0.1.0</version>
 </dependency>
 ```
 
-### 开启
+如果 Central 上暂时拉不到，先用方式 A 本地安装。
+
+> Maven 坐标使用 `io.github.432335`；Java 包名是 `io.github.user432335.securekit`。两者不要求完全一致。
+
+## 6. 三个能力详情
+
+### 6.1 mask：显式脱敏
+
+#### 引入依赖
+
+```xml
+<dependency>
+    <groupId>io.github.432335</groupId>
+    <artifactId>secure-kit-mask-spring-boot-starter</artifactId>
+    <version>0.1.0</version>
+</dependency>
+```
+
+#### 开启
 
 ```yaml
 secure-kit:
@@ -40,7 +138,19 @@ secure-kit:
     enabled: true
 ```
 
-### 使用
+#### API 顺序
+
+`MaskTemplate` 的三个重载顺序是：
+
+```java
+mask(MaskType type, String original)
+mask(MaskType type, String original, String replacement)
+mask(MaskType type, String original, String pattern, String replacement)
+```
+
+注意：没有 `mask(type, original, pattern)` 这个重载。自定义正则必须传四个参数。
+
+#### 使用
 
 ```java
 import io.github.user432335.securekit.core.MaskType;
@@ -70,9 +180,9 @@ public class UserService {
 }
 ```
 
-说明：`@Mask` 在 0.1.0 中只是标记，不会自动拦截，也不会自动改 Jackson 序列化，需要手动调用 `MaskTemplate`。
+`@Mask` 在 0.1.0 中只是元数据标记，不会自动拦截字段、参数或方法，也不会自动改 Jackson 序列化。需要手动调用 `MaskTemplate`。
 
-### 内置类型
+#### 内置类型
 
 | 类型 | 示例输入 | 默认输出 |
 | --- | --- | --- |
@@ -82,21 +192,19 @@ public class UserService {
 | `EMAIL` | `zhangsan@example.com` | `z*******@example.com` |
 | `CUSTOM` | `order-1234` + `\d{4}` | `order-*` |
 
----
+### 6.2 audit：审计事件
 
-## 2. 审计：audit
-
-### 引入依赖
+#### 引入依赖
 
 ```xml
 <dependency>
-    <groupId>io.github.user432335</groupId>
+    <groupId>io.github.432335</groupId>
     <artifactId>secure-kit-audit-spring-boot-starter</artifactId>
-    <version>0.1.0-SNAPSHOT</version>
+    <version>0.1.0</version>
 </dependency>
 ```
 
-### 开启
+#### 开启
 
 ```yaml
 secure-kit:
@@ -107,7 +215,7 @@ secure-kit:
     mask-before-save: true
 ```
 
-### 使用
+#### 使用
 
 ```java
 import io.github.user432335.securekit.audit.annotation.AuditLog;
@@ -123,9 +231,9 @@ public class OrderService {
 }
 ```
 
-### 接自己的存储
+#### 接自己的存储
 
-默认实现只输出 DEBUG 日志，不做持久化。生产环境提供一个自己的 `AuditRepository` Bean：
+默认实现只输出 DEBUG 日志，不做持久化。生产环境提供自己的 `AuditRepository` Bean：
 
 ```java
 import io.github.user432335.securekit.audit.event.AuditEvent;
@@ -148,7 +256,7 @@ public class AuditConfig {
 }
 ```
 
-如果需要当前登录人，提供 `AuditUserProvider`：
+#### 当前操作人
 
 ```java
 @Bean
@@ -157,26 +265,27 @@ public AuditUserProvider auditUserProvider() {
 }
 ```
 
-说明：
+#### 说明
 
-- audit 不强制依赖 mask。检测到 mask 时自动脱敏，没有 mask 时明文保存并输出一次 WARN。
-- 审计线程池有界，队列满时丢弃任务，不会阻塞或抛异常到业务线程。
+- audit 不强制依赖 mask。
+- 检测到 mask 时，保存前自动脱敏。
+- 没有 mask 时明文保存，并且只输出一次 WARN。
+- 审计线程池有界，队列满时丢弃任务，不阻塞、不抛异常到业务线程。
+- 默认不持久化，生产环境必须替换 `AuditRepository`。
 
----
+### 6.3 log-guard：日志出口脱敏
 
-## 3. 日志脱敏：log-guard
-
-### 引入依赖
+#### 引入依赖
 
 ```xml
 <dependency>
-    <groupId>io.github.user432335</groupId>
+    <groupId>io.github.432335</groupId>
     <artifactId>secure-kit-log-guard-spring-boot-starter</artifactId>
-    <version>0.1.0-SNAPSHOT</version>
+    <version>0.1.0</version>
 </dependency>
 ```
 
-### 开启
+#### 开启
 
 ```yaml
 secure-kit:
@@ -185,7 +294,7 @@ secure-kit:
     default-replacement: "*"
 ```
 
-### Logback 配置
+#### Logback 配置
 
 ```xml
 <configuration>
@@ -204,7 +313,7 @@ secure-kit:
 </configuration>
 ```
 
-### Log4j2 配置
+#### Log4j2 配置
 
 ```xml
 <Configuration status="WARN">
@@ -225,19 +334,18 @@ secure-kit:
 </Configuration>
 ```
 
-说明：
+#### 说明
 
-- 本模块不会自动修改你的 `logback.xml` / `log4j2.xml`，必须按上面配置。
-- Logback Converter 和 Log4j2 Policy 由日志框架创建，不能注入 Spring Bean，可选配置用系统属性：
+- 本模块不会自动修改 `logback.xml` / `log4j2.xml`。
+- Converter 和 Policy 由日志框架创建，不能注入 Spring Bean。
+- 可选配置用系统属性：
 
 ```text
 -Dsecure-kit.log-guard.default-replacement=#
 -Dsecure-kit.log-guard.patterns=1[3-9]\d{9},\d{17}[\dXx]
 ```
 
----
-
-## 配置项
+## 7. 配置项
 
 ### mask
 
@@ -267,9 +375,9 @@ secure-kit:
 | `secure-kit.log-guard.default-replacement` | `*` | 替换文本 |
 | `secure-kit.log-guard.patterns` | 内置 7 条 | 敏感正则列表 |
 
----
+## 8. 自定义扩展
 
-## 自定义 Masker
+### 自定义 Masker
 
 ```java
 @Bean
@@ -288,16 +396,117 @@ public Masker employeeNoMasker() {
 }
 ```
 
----
+### 自定义 AuditRepository
 
-## 边界
+```java
+@Bean
+public AuditRepository auditRepository() {
+    return event -> {
+        // 必须线程安全；建议快速返回
+    };
+}
+```
+
+### 自定义 AuditUserProvider
+
+```java
+@Bean
+public AuditUserProvider auditUserProvider() {
+    return () -> "alice";
+}
+```
+
+## 9. FAQ
+
+### 为什么引入依赖没有生效？
+
+所有模块默认 `enabled=false`，需要显式设置 `secure-kit.<module>.enabled=true`。
+
+### 为什么 `@Mask` 没有自动脱敏？
+
+0.1.0 中 `@Mask` 只是元数据，不会自动拦截。请手动调用 `MaskTemplate`。
+
+### audit 默认存到哪里？
+
+默认只输出 DEBUG 日志，不持久化。生产环境请提供自己的 `AuditRepository`。
+
+### 没有引入 mask，audit 能用吗？
+
+能。audit 会明文保存事件，并输出一次 WARN。
+
+### log-guard 开启了但没有效果？
+
+需要同时修改 `logback.xml` 或 `log4j2.xml`，引用 `SensitiveMessageConverter` 或 `SensitiveRewritePolicy`。
+
+### 能用来做认证、鉴权、JWT 吗？
+
+不能。本项目不做这些能力，请使用 Spring Security 等方案。
+
+### 支持 Spring Boot 2.x 吗？
+
+不支持，只支持 Spring Boot 3.2.x。
+
+### Central 上拉不到依赖怎么办？
+
+在项目根目录执行 `mvn clean install`，先使用本地安装的 `0.1.0`。
+
+## 10. 边界与已知限制
 
 - 不做认证、鉴权、登录、JWT、OAuth2、RBAC。
 - 不实现加密、哈希、签名算法。
-- mask 需要手动调用，忘记调用就不会脱敏。
-- audit 默认不持久化，队列满时可能丢弃事件。
+- mask 是显式调用，忘记调用就不会脱敏。
+- audit 默认不持久化；异步队列满时可能丢弃事件。
 - log-guard 正则可能误伤纯数字业务字段，请按业务覆盖配置。
+- log-guard 是日志出口兜底，不是 DLP 系统。
+- 审计事件的 `errorMessage` 不参与脱敏。
+- 本项目与 Spring Security 互补，不替代。
 
-## License
+## 11. 兼容性
 
-Apache-2.0，详见 [LICENSE](LICENSE)。
+- Java 17
+- Spring Boot 3.2.x
+- Maven 3.9+
+- 使用 Spring Boot 3.x `AutoConfiguration.imports`
+- 不兼容 Spring Boot 2.x
+- 构建命令：`mvn verify`
+
+## 12. 示例项目
+
+`secure-kit-demo` 是演示模块，包含 mask + audit 的最小集成。
+
+```bash
+# 运行 demo 的集成测试
+mvn -pl secure-kit-demo -am test
+
+# 启动 demo
+mvn -pl secure-kit-demo -am spring-boot:run
+```
+
+demo 目前用于验证能力接入，不提供页面或 REST 接口。
+
+## 13. Roadmap
+
+### 0.2 计划
+
+- Jackson 序列化扩展：基于 `@Mask` 的可选自动脱敏。
+- 更多内置脱敏类型。
+- 可选 JDBC `AuditRepository` 实现。
+- 更完整的发布与版本说明。
+
+如果这个项目对你有帮助，欢迎点一个 Star。
+
+## 14. 贡献指南
+
+欢迎提交 Issue 和 Pull Request。
+
+提交前请阅读 [CONTRIBUTING.md](CONTRIBUTING.md)，并确保：
+
+```bash
+mvn verify
+```
+
+通过。
+
+## 15. License
+
+Apache License 2.0，详见 [LICENSE](LICENSE)。

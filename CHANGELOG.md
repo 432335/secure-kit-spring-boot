@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `CONTRIBUTING.md` contribution guide.
+- `PUBLISHING.md` Maven Central publishing guide.
+
+### Changed
+
+- Restructured `README.md` around project overview, quick start, module details, FAQ, demo and contribution paths.
+
 ## [0.1.0] - 2026-11-14
 
 ### Added

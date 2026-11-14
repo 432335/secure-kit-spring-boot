@@ -21,6 +21,7 @@ buildNumber.properties
 
 # IntelliJ IDEA
 .idea/
+.openidea/
 *.iws
 *.iml
 *.ipr
