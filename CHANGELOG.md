@@ -9,12 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- `CONTRIBUTING.md` contribution guide.
-- `PUBLISHING.md` Maven Central publishing guide.
+- English and Chinese READMEs.
+- `CONTRIBUTING.md` and `CONTRIBUTING.zh-CN.md` contribution guides.
+- `SECURITY.md`, `CODE_OF_CONDUCT.md`, issue templates and pull request template.
+- `docs/comparison.md` capability comparison.
+- `benchmarks/` standalone JMH benchmark project.
+- `RELEASE_NOTES_v0.1.0.md` release notes.
 
 ### Changed
 
 - Restructured `README.md` around project overview, quick start, module details, FAQ, demo and contribution paths.
+- CI now runs on Java 17 and Java 21.
+- README now links to Maven Central and benchmark documentation.
 
 ## [0.1.0] - 2026-11-14
 

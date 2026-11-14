@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/432335/secure-kit-spring-boot/security/advisories/new
+    about: Please report security issues privately, not in a public issue.

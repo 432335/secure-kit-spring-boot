@@ -1,67 +1,71 @@
 # Contributing
 
-感谢你愿意参与 `secure-kit-spring-boot`。
+**English** | [简体中文](CONTRIBUTING.zh-CN.md)
 
-## 环境要求
+Thanks for contributing to `secure-kit-spring-boot`.
+
+## Requirements
 
 - JDK 17
 - Maven 3.9+
 - Git
 
-## 本地构建
+## Local build
 
 ```bash
 mvn clean verify
 ```
 
-如果只想编译：
+Compile only:
 
 ```bash
 mvn -DskipTests compile
 ```
 
-## 提交 Pull Request
+## Pull requests
 
-1. Fork 本仓库。
-2. 从 `main` 创建功能分支。
-3. 保持改动聚焦，一个 PR 只做一件事。
-4. 新增或修改行为时，补充对应测试。
-5. 确保 `mvn verify` 通过。
-6. 更新 README、CHANGELOG 或 Javadoc（如适用）。
-7. 提交 PR，并说明改动目的、行为和测试方式。
+1. Fork the repository.
+2. Create a focused branch from `main`.
+3. Keep one pull request focused on one concern.
+4. Add or update tests for behaviour changes.
+5. Make sure `mvn verify` passes.
+6. Update README, CHANGELOG, or Javadoc when needed.
+7. Open the pull request with the motivation, behaviour, and test plan.
 
-## 代码约定
+## Code guidelines
 
-- 使用 Java 17。
-- 不引入 Lombok、Guava、Commons Lang、MapStruct、Fastjson。
-- 模块之间保持低耦合，不增加不必要的强依赖。
-- 所有 public 类和 public 方法必须有 Javadoc。
-- 默认关闭原则：新增能力必须显式开启。
-- 不要让库代码接管用户控制流。
-- 不要让安全能力的失败影响业务调用。
-- 不要在代码、测试或文档中提交真实密钥、Token、密码或个人信息。
+- Java 17.
+- No Lombok, Guava, Commons Lang, MapStruct, or Fastjson.
+- Keep modules loosely coupled. Do not add unnecessary hard dependencies.
+- Public classes and public methods need Javadoc.
+- New capabilities must remain default-off.
+- Do not take over user control flow.
+- A security capability failure must not break business calls.
+- Never commit real secrets, tokens, passwords, or personal data.
 
-## 测试
+## Tests
 
-- 使用 JUnit 5、AssertJ、`ApplicationContextRunner`。
-- 覆盖正常路径、边界输入、空值和失败路径。
-- 修改自动配置时，验证默认关闭和用户自定义 Bean 的退让行为。
+- JUnit 5, AssertJ, and `ApplicationContextRunner`.
+- Cover normal paths, boundaries, nulls, and failure paths.
+- For auto-configuration changes, verify default-off behaviour and user-bean back-off.
 
-## 文档
+## Documentation
 
-- README 面向使用者，优先说明“是什么”和“怎么用”。
-- 发布流程见 [PUBLISHING.md](PUBLISHING.md)。
-- 变更记录见 [CHANGELOG.md](CHANGELOG.md)。
+- README is for users: explain what it is and how to use it.
+- Publishing steps are in [PUBLISHING.md](PUBLISHING.md).
+- Changes are recorded in [CHANGELOG.md](CHANGELOG.md).
 
-## Issue
+## Issues
 
-提交 Issue 时请说明：
+Please include:
 
-- 使用的版本
-- JDK 和 Spring Boot 版本
-- 最小复现步骤
-- 期望行为和实际行为
+- version;
+- JDK and Spring Boot version;
+- minimal reproduction;
+- expected and actual behaviour.
+
+For security issues, use [SECURITY.md](SECURITY.md), not a public issue.
 
 ## License
 
-提交贡献即表示同意以 Apache-2.0 协议发布。
+By contributing, you agree that your contribution is licensed under Apache-2.0.
