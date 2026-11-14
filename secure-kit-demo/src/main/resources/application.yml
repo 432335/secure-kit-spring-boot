@@ -1,0 +1,16 @@
+spring:
+  application:
+    name: secure-kit-demo
+
+server:
+  port: 0
+
+secure-kit:
+  mask:
+    enabled: true
+  audit:
+    enabled: true
+    async: false
+    default-operator: demo
+  log-guard:
+    enabled: false
